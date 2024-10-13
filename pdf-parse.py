@@ -39,7 +39,7 @@ class PDF:
         all_table_content = ""
         pdf = pdfplumber.open(self.pdf_path)
         for idx, page in enumerate(pdf.pages):
-        #for idx, page in enumerate(PdfReader(self.pdf_path).pages):
+        ##for idx, page in enumerate(PdfReader(self.pdf_path).pages):
             page_content = ""
             text = page.extract_text()
             words = text.split("\n")
