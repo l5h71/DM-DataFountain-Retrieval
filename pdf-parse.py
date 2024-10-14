@@ -31,30 +31,40 @@ class PDF:
                     self.data.append(sent)
                 cur = cur[len(sentences[slow] + "。"):]
                 slow = slow + 1
-            cur = cur + sentence + "。"
+            cur = cur + sentence # 这里删除了加句号
             fast = fast + 1
 
-    def ParseAllPage(self, max_seq = 512, min_len = 6):
+    def ParseAllPage(self, max_seq = 256, min_len = 6):
         all_content = ""
         all_table_content = ""
+        sentences = []
+        sentence = ""
         pdf = pdfplumber.open(self.pdf_path)
         for idx, page in enumerate(pdf.pages):
-        ##for idx, page in enumerate(PdfReader(self.pdf_path).pages):
-            page_content = ""
-            text = page.extract_text()
-            words = text.split("\n")
-            for idx, word in enumerate(words):
-                text = word.strip()
-                if("...................." in text or "目录" in text):
+
+
+            pre_left_position = 0
+            pre_right_position = 0
+            words = page.extract_words()
+            # 打印每个单词及其位置
+            for word in words:
+                left_position = word['x0']
+                right_position = word['x1']
+                #print(word['text'], word['x0'], word['x1'], word['top'], word['bottom'])
+                if abs(left_position - pre_left_position) + abs(right_position - pre_right_position) > 5:
+                    sentences.append(sentence)
+                    pre_left_position = left_position
+                    pre_right_position = right_position
+                    sentence = ""
+                text = word['text'].strip().strip("\n")
+                if ("...................." in text or "目录" in text):
                     continue
-                if(len(text) < 1):
+                if (len(text) < 1):
                     continue
-                if(text.isdigit()):
+                if (text.isdigit()):
                     continue
-                page_content = page_content + text
-            if(len(page_content) < min_len):
-                continue
-            all_content = all_content + page_content
+                sentence = sentence + text
+            sentences.append(sentence)
 
             table_content = ""
             tables = page.extract_tables()
@@ -63,11 +73,38 @@ class PDF:
                 for row in table:
                     for item in row:
                         if item != None:
-                            table_content = table_content + item.__str__()
+                            table_content = table_content + " " + item.__str__().strip("\n").strip()
             all_table_content = all_table_content + table_content
-            all_content = all_content + table_content
+            sentences = sentences + all_table_content.split("。")
 
-        sentences = all_content.split("\n")
+        #     page_content = ""
+        #     text = page.extract_text()
+        #     words = text.split("\n")
+        #     for idx, word in enumerate(words):
+        #         text = word.strip()
+        #         if("...................." in text or "目录" in text):
+        #             continue
+        #         if(len(text) < 1):
+        #             continue
+        #         if(text.isdigit()):
+        #             continue
+        #         page_content = page_content + text
+        #     if(len(page_content) < min_len):
+        #         continue
+        #     all_content = all_content + page_content
+        #
+        #     table_content = ""
+        #     tables = page.extract_tables()
+        #     #将表格按行存储
+        #     for table in tables:
+        #         for row in table:
+        #             for item in row:
+        #                 if item != None:
+        #                     table_content = table_content + item.__str__()
+        #     all_table_content = all_table_content + table_content
+        #     all_content = all_content + table_content
+        #
+        # sentences = all_content.split("。")
 
         self.SlidingWindow(sentences, kernel = max_seq)
 
