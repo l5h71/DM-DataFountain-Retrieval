@@ -1,6 +1,7 @@
 import json
 import os
-from pypdf import PdfReader
+#from pypdf import PdfReader
+import pdfplumber
 import re
 
 class PDF:
@@ -11,7 +12,7 @@ class PDF:
     def __init__(self, pdf_path):
         self.pdf_path = pdf_path
 
-    def SlidingWindow(self, sentences, kernel = 512, stride = 1):
+    def SlidingWindow(self, sentences, kernel = 256, stride = 1):
         sz = len(sentences)
         cur = ""
         fast = 0
@@ -32,15 +33,18 @@ class PDF:
                 slow = slow + 1
             cur = cur + sentence + "。"
             fast = fast + 1
-            
+
     def ParseAllPage(self, max_seq = 512, min_len = 6):
         all_content = ""
-        for idx, page in enumerate(PdfReader(self.pdf_path).pages):
+        all_table_content = ""
+        pdf = pdfplumber.open(self.pdf_path)
+        for idx, page in enumerate(pdf.pages):
+        ##for idx, page in enumerate(PdfReader(self.pdf_path).pages):
             page_content = ""
             text = page.extract_text()
             words = text.split("\n")
             for idx, word in enumerate(words):
-                text = word.strip().strip("\n")
+                text = word.strip()
                 if("...................." in text or "目录" in text):
                     continue
                 if(len(text) < 1):
@@ -51,13 +55,28 @@ class PDF:
             if(len(page_content) < min_len):
                 continue
             all_content = all_content + page_content
+
+            table_content = ""
+            tables = page.extract_tables()
+            #将表格按行存储
+            for table in tables:
+                for row in table:
+                    for item in row:
+                        if item != None:
+                            table_content = table_content + item.__str__()
+            all_table_content = all_table_content + table_content
+            all_content = all_content + table_content
+
         sentences = all_content.split("。")
+
         self.SlidingWindow(sentences, kernel = max_seq)
 
 
 # 批量处理 PDF 文件
-pdf_folder = '/home/liusihan/dev/DM-DataFountain-Retrieval/resources/A_document'
-output_folder = '/home/liusihan/dev/DM-DataFountain-Retrieval/resources/temp'
+# pdf_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\A_document'
+pdf_folder = '/home/lsh/DM-DataFountain-Retrieval/resources/A_document'
+# output_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\temp'
+output_folder = '/home/lsh/DM-DataFountain-Retrieval/resources/temp'
 
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
@@ -67,7 +86,7 @@ for pdf_file in os.listdir(pdf_folder):
     if pdf_file.endswith('.pdf'):
         pdf = PDF(pdf_folder + '/' + pdf_file)
         pdf.ParseAllPage()
-        with open(output_folder + '/' + str(i) + '.json', 'w') as file:
+        with open(output_folder + '/' + str(i) + '.json', 'w', encoding='utf-8') as file:
             json.dump(pdf.data, file, ensure_ascii=False, indent=4)
         print('finish' + str(i))
         i = i + 1

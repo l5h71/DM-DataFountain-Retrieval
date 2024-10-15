@@ -67,14 +67,16 @@ class PDF:
             all_table_content = all_table_content + table_content
             all_content = all_content + table_content
 
-        sentences = all_content.split("\n")
+        sentences = all_content.split("。")
 
         self.SlidingWindow(sentences, kernel = max_seq)
 
 
 # 批量处理 PDF 文件
-pdf_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\A_document'
-output_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\temp'
+# pdf_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\A_document'
+pdf_folder = '/home/lsh/DM-DataFountain-Retrieval/resources/A_document'
+# output_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\temp'
+output_folder = '/home/lsh/DM-DataFountain-Retrieval/resources/temp'
 
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
