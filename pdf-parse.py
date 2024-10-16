@@ -11,6 +11,7 @@ class PDF:
 
     def __init__(self, pdf_path):
         self.pdf_path = pdf_path
+        self.data = []
 
     def SlidingWindow(self, sentences, kernel = 512, stride = 1):
         sz = len(sentences)
