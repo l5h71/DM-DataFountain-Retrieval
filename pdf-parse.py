@@ -11,6 +11,7 @@ class PDF:
 
     def __init__(self, pdf_path):
         self.pdf_path = pdf_path
+        self.data = []
 
     def SlidingWindow(self, sentences, kernel = 512, stride = 1):
         sz = len(sentences)
@@ -78,7 +79,6 @@ class PDF:
             all_table_content = all_table_content + table_content
         sentences.append(sentence)
         sentences = sentences + all_table_content.split("。")
-
         para_content = ""
         for s in sentences:
             sentence_content = ""
@@ -93,14 +93,15 @@ class PDF:
             if len(sentence_content) < min_len:
                 continue
             para_content = para_content + sentence_content
-
         para = para_content.split("。")
         self.SlidingWindow(para, kernel=max_seq)
 
 
 # 批量处理 PDF 文件
-pdf_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\A_document'
-output_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\temp'
+# pdf_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\A_document'
+pdf_folder = '/home/lsh/DM-DataFountain-Retrieval/resources/A_document'
+# output_folder = 'D:\\桌面\\DM-DataFountain-Retrieval\\resources\\temp'
+output_folder = '/home/lsh/DM-DataFountain-Retrieval/resources/temp'
 
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
